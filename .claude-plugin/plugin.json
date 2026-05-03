@@ -1,0 +1,12 @@
+{
+  "name": "radhe",
+  "description": "talk to your terminal. it orders dinner. claude becomes a calm, taste-driven dinner agent connected to the official swiggy MCP. india only. cash on delivery.",
+  "author": {
+    "name": "Abhishek Kanthed",
+    "url": "https://github.com/bestkanthed"
+  },
+  "homepage": "https://github.com/bestkanthed/radhe-skill",
+  "repository": "https://github.com/bestkanthed/radhe-skill",
+  "license": "MIT",
+  "keywords": ["food", "dinner", "swiggy", "india", "mcp", "ordering"]
+}

@@ -1,0 +1,14 @@
+{
+  "name": "bestkanthed",
+  "owner": {
+    "name": "Abhishek Kanthed",
+    "url": "https://github.com/bestkanthed"
+  },
+  "plugins": [
+    {
+      "name": "radhe",
+      "source": "./",
+      "description": "talk to your terminal. it orders dinner."
+    }
+  ]
+}

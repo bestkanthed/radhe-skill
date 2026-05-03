@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "swiggy": {
+      "type": "http",
+      "url": "https://mcp.swiggy.com/food"
+    }
+  }
+}
