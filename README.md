@@ -23,7 +23,7 @@ restart claude code if prompted.
 /radhe
 ```
 
-first run: a browser tab opens for swiggy login. one tap. radhe then asks for your address. that's the whole setup.
+first run: a browser tab opens for swiggy login. one tap. radhe then pulls your name, phone, and saved delivery addresses straight from swiggy and caches them locally. no separate address setup. that's the whole onboarding.
 
 every run after that:
 
@@ -45,7 +45,9 @@ radhe ▸ order placed. tracking: swiggy.com/order/...
 
 **balanced pick.** of the 5 cards, one shows kcal + protein. order whatever you want — radhe just adds the info quietly.
 
-**memory.** your address, phone, taste rules (`no paneer`, `₹500 weeknight cap`, `vegetarian`) live in `~/.radhe/prefs.json`. delete the file to reset.
+**no address setup.** swiggy already knows your saved addresses (Home, Office, …). on first login, radhe pulls them into `~/.radhe/prefs.json`. the default delivery address is chosen automatically. you only get asked when you're somewhere new.
+
+**memory.** name, phone, addresses, and taste rules (`no paneer`, `₹500 weeknight cap`, `vegetarian`) live in `~/.radhe/prefs.json`. delete the file to reset (radhe will re-sync from swiggy on the next run).
 
 **cash on delivery only.** no card details ever leave your machine. pay the rider.
 
@@ -53,7 +55,7 @@ radhe ▸ order placed. tracking: swiggy.com/order/...
 
 ## optional
 
-precise geocoding is opt-in. set one of:
+precise geocoding is opt-in and only matters for ad-hoc addresses (a friend's place, a hotel) that aren't saved to swiggy. set one of:
 
 ```bash
 export MAPBOX_TOKEN="..."
