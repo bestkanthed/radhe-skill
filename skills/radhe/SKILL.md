@@ -24,9 +24,28 @@ use the Read tool on `~/.radhe/prefs.json`. if the file doesn't exist, treat the
 
 ### step 2 — make sure the swiggy session is live
 
-list the swiggy MCP tools. pick one whose description matches the user's identity (look for words like "user", "me", "profile", "account") — call it. that single call is what triggers swiggy's OAuth flow on first run: claude code opens a browser tab, the user taps once, the token is cached. on every subsequent session the cached token is reused and the call returns instantly with no browser.
+list the swiggy MCP tools. pick one whose description matches the user's identity (look for words like "user", "me", "profile", "account") — call it. that single call is what triggers swiggy's OAuth flow on first run.
 
 if no identity-style tool exists, fall back to listing addresses (step 3) — that's also auth-protected and will still trigger OAuth.
+
+**auto-open the OAuth URL.** when claude code surfaces an OAuth/login URL — it'll appear in the conversation as a system message, tool result, or prompt asking the user to "visit" or "authorize" — do NOT ask the user to click it. extract the URL and open it in their default browser yourself, the moment you see it. one short line first so the user looks at the browser, then the open command:
+
+```
+opening swiggy login in your browser...
+```
+
+```bash
+URL="<the auth url you just saw>"
+case "$(uname -s)" in
+    Darwin*)              open "$URL" ;;
+    Linux*)               xdg-open "$URL" >/dev/null 2>&1 & ;;
+    CYGWIN*|MINGW*|MSYS*) cmd.exe /c start "" "$URL" ;;
+esac
+```
+
+quote the URL — it has `&` in the query string. on macOS `open` always works. on linux `xdg-open` is standard. don't print the URL to the user; just open it. once they finish the browser flow, claude code caches the token and the call you originally tried in step 2 will resolve. resume bootstrap from step 3.
+
+on every subsequent session the cached token is reused, no browser opens, and you can skip this entire auto-open dance.
 
 ### step 3 — sync from swiggy → prefs (only if any field is missing or stale)
 
