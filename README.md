@@ -106,6 +106,32 @@ without either, radhe falls back to swiggy's own address resolution from text + 
 
 - claude code 2.0+
 - a swiggy account (indian phone number)
+- node.js 18+ on your `$PATH` (used by the MCP token bridge — `npx` ships with node, no extra install)
+
+if you don't have node yet:
+
+```bash
+# macOS (homebrew)
+brew install node
+
+# linux (apt)
+sudo apt install nodejs npm
+
+# windows
+# install from https://nodejs.org (LTS)
+```
+
+## how login works
+
+you log in to swiggy **once**. the plugin uses [`mcp-remote`](https://www.npmjs.com/package/mcp-remote) under the hood as a local OAuth bridge — your access token + refresh token are cached in `~/.mcp-auth/` and refreshed automatically in the background. you won't get re-prompted to log in until your refresh token itself expires (typically 30+ days, depending on swiggy's policy).
+
+if you ever want to log out / reset auth:
+
+```bash
+rm -rf ~/.mcp-auth
+```
+
+next `/radhe` will pop the browser one more time.
 
 ## privacy
 

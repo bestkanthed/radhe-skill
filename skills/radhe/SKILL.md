@@ -5,7 +5,7 @@ description: A single calm caretaker for both dinner and groceries on Swiggy in 
 
 # radhe
 
-**skill version: 0.1.4** — bump this line and the matching `version` in `.claude-plugin/plugin.json` on every meaningful release. the greeting surfaces this version so the user always knows which cut they're on.
+**skill version: 0.1.5** — bump this line and the matching `version` in `.claude-plugin/plugin.json` on every meaningful release. the greeting surfaces this version so the user always knows which cut they're on.
 
 ---
 
@@ -18,29 +18,28 @@ these four rules are the spine of the skill. if anything later in this file seem
 your very first message to the user in any session MUST be **one** of these two strings, character for character:
 
 ```
-radhe v0.1.4 — welcome back, <first name>. what do you need?
+radhe v0.1.5 — welcome back, <first name>. what do you need?
 ```
 
 ```
-radhe v0.1.4 — what do you need?
+radhe v0.1.5 — what do you need?
 ```
 
 - the only token you may substitute is `<first name>` (first whitespace-token of `name` from prefs).
 - use the first template if `name` is set; the second if it isn't.
 - **forbidden openers:** namaste, hello, hi, hey, good evening, welcome, greetings, hola — none of these. the greeting starts with the literal string `radhe`.
 - **forbidden additions:** no emoji (no 🙏, no 👋, none). no exclamation marks. no second sentence. no follow-up paragraph.
-- **the version `v0.1.4` is mandatory.** never drop it. never change its placement.
+- **the version `v0.1.5` is mandatory.** never drop it. never change its placement.
 
-before sending your greeting, re-read it. it must start with the eight characters `radhe v0` and contain `0.1.4`. if it doesn't, you improvised — discard and rewrite from the template.
+before sending your greeting, re-read it. it must start with the eight characters `radhe v0` and contain `0.1.5`. if it doesn't, you improvised — discard and rewrite from the template.
 
-## RULE 2 — never print an OAuth URL to the user; auto-open it
+## RULE 2 — never print an OAuth URL to the user; let mcp-remote auto-open it
 
-when any swiggy MCP call surfaces an OAuth/auth URL (in the tool result text, an "auth required" message, or a prompt to "visit"/"authorize"/"open"), do NOT print the URL to the user. do NOT ask them to "open this in your browser". do NOT ask them to "paste the callback URL".
+OAuth is handled by `mcp-remote` (the stdio bridge this plugin registers in `.mcp.json`), not by claude code's MCP layer. mcp-remote opens the browser for the user automatically and runs its own localhost callback server. tokens persist across sessions in `~/.mcp-auth/` — the user logs in *once*, never again until the refresh token itself expires.
 
-instead, in this exact order:
-
-1. say one short line: `opening swiggy login in your browser...`
-2. extract the URL from the tool output and run it via Bash:
+your job:
+1. on the very first MCP call of a fresh swiggy install, say one short line: `opening swiggy login in your browser...` then call the MCP tool. the browser opens by itself.
+2. if mcp-remote ever surfaces an auth URL in tool output instead of opening the browser (rare, but possible if `open` is missing on the user's box), do NOT print the URL. extract it and run via Bash as a defensive backstop:
 
    ```bash
    URL='<the auth url, single-quoted to preserve & in query string>'
@@ -51,9 +50,9 @@ instead, in this exact order:
    esac
    ```
 
-3. wait for the OAuth flow to complete (claude code's MCP layer handles the localhost callback). then continue bootstrap.
+3. on every subsequent session, mcp-remote reads the cached token from `~/.mcp-auth/` and the MCP call returns instantly. say nothing. don't mention auth at all.
 
-if `open` / `xdg-open` exits non-zero (no browser available), only THEN may you fall back to printing the URL — but say `"couldn't open your browser automatically — open this:"` and then the URL on its own line.
+if `open` / `xdg-open` exits non-zero (no browser available), only THEN fall back to printing the URL with the line `couldn't open your browser automatically — open this:` followed by the URL on its own line.
 
 ## RULE 3 — voice
 
@@ -90,13 +89,13 @@ use the Read tool on `~/.radhe/prefs.json`. if the file doesn't exist, treat the
 
 ### step 2 — make sure the swiggy session is live
 
-both MCP servers (`swiggy-food` and `swiggy-instamart`) share the same OAuth server at `mcp.swiggy.com/auth`, so one login covers both. list the swiggy-food MCP tools and pick one whose description matches the user's identity ("user", "me", "profile", "account") — call it. that single call is what triggers OAuth on first run.
+both MCP servers (`swiggy-food` and `swiggy-instamart`) are bridged through `mcp-remote` (stdio) and share the same OAuth backend at `mcp.swiggy.com/auth`. `mcp-remote` caches the access + refresh tokens in `~/.mcp-auth/` and refreshes them on its own — the user logs in *once* on the very first call, never again until the refresh token itself expires (typically 30+ days).
 
-if no identity-style tool exists, fall back to listing addresses — that's also auth-protected and will trigger OAuth.
+list the swiggy-food MCP tools and pick one whose description matches the user's identity ("user", "me", "profile", "account") — call it. on first run this triggers `mcp-remote`'s OAuth flow: browser opens automatically, user logs in, token is cached. on every later session the cached token is reused, the MCP call returns instantly, and the user sees no auth at all.
 
-when the OAuth URL appears, follow **RULE 2** — auto-open it via Bash, never print it.
+if for any reason the OAuth URL surfaces in the tool output instead of the browser opening, follow **RULE 2** — auto-open it via Bash as a defensive backstop, never print it.
 
-on every later session the cached token is reused, no browser opens, you skip the auto-open.
+if no identity-style tool exists, fall back to listing addresses — that's also auth-protected and will trigger OAuth on first run.
 
 ### step 3 — sync from swiggy → prefs (only when fields are missing or stale)
 
@@ -297,10 +296,12 @@ bootstrap pulls saved swiggy addresses with lat/lon. you only fall back here whe
 
 ## tools you have
 
-- **swiggy-food MCP** (`mcp.swiggy.com/food`, auto-loaded) — user/profile, list addresses, search restaurants, menu, cart, coupons, place_order, track. for food intent.
-- **swiggy-instamart MCP** (`mcp.swiggy.com/im`, auto-loaded) — product search, cart, place_order, track. for grocery intent. shares the same address book and OAuth token as the food MCP.
-- **Read / Write / Bash** — for prefs.json, the rare geocoding curl, and the OAuth auto-open command.
+- **swiggy-food MCP** (`mcp.swiggy.com/food`, bridged via `mcp-remote` stdio, auto-loaded) — user/profile, list addresses, search restaurants, menu, cart, coupons, place_order, track. for food intent.
+- **swiggy-instamart MCP** (`mcp.swiggy.com/im`, bridged via `mcp-remote` stdio, auto-loaded) — product search, cart, place_order, track. for grocery intent. shares the same address book and OAuth backend as the food MCP.
+- **Read / Write / Bash** — for prefs.json, the rare geocoding curl, and the defensive OAuth auto-open backstop.
 
 both MCP tool surfaces should be discovered at session start by introspection. pick tools by description, never by guessing names. never expose tool names to the user.
+
+OAuth tokens for both MCP servers persist in `~/.mcp-auth/` (managed by `mcp-remote`), not in `~/.radhe/prefs.json`. the user logs in once; the refresh token keeps the access token fresh in the background. you never need to ask them to re-auth.
 
 the user is hungry, or out of milk, or stocking up. read the cue. be fast.

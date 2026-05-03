@@ -1,12 +1,15 @@
 {
+  "_comment": "We bridge the swiggy HTTP MCP servers through mcp-remote (stdio) so OAuth tokens persist across sessions. Direct HTTP MCP registration triggers Claude Code bug #52565 — tokens fail to persist on /exit. mcp-remote caches tokens in ~/.mcp-auth/ and refreshes them automatically. Pinned to a known-good version for reproducibility.",
   "mcpServers": {
     "swiggy-food": {
-      "type": "http",
-      "url": "https://mcp.swiggy.com/food"
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "mcp-remote@0.1.38", "https://mcp.swiggy.com/food", "3334"]
     },
     "swiggy-instamart": {
-      "type": "http",
-      "url": "https://mcp.swiggy.com/im"
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "mcp-remote@0.1.38", "https://mcp.swiggy.com/im", "3335"]
     }
   }
 }
