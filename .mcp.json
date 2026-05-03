@@ -1,8 +1,12 @@
 {
   "mcpServers": {
-    "swiggy": {
+    "swiggy-food": {
       "type": "http",
       "url": "https://mcp.swiggy.com/food"
+    },
+    "swiggy-instamart": {
+      "type": "http",
+      "url": "https://mcp.swiggy.com/im"
     }
   }
 }

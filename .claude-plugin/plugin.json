@@ -1,7 +1,7 @@
 {
   "name": "radhe",
-  "version": "0.1.3",
-  "description": "talk to your terminal. it orders dinner. claude becomes a calm, taste-driven dinner agent connected to the official swiggy MCP. india only. cash on delivery.",
+  "version": "0.1.4",
+  "description": "talk to your terminal. it orders dinner and groceries. claude becomes a calm, taste-driven caretaker connected to swiggy food + instamart, with deep grocery psychology — dietary identity, allergens, brand loyalty, replenishment cadence, nutrient density. india only. cash on delivery.",
   "author": {
     "name": "Abhishek Kanthed",
     "url": "https://github.com/bestkanthed"
